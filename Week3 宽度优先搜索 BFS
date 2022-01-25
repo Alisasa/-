@@ -3,7 +3,17 @@ BFS 使用场景：
  分层遍历：图的层次遍历；简单图最短路径
  拓扑排序
  
- 模板：
- queue = collection.deque([node]) #
+ 通用模板：
+ queue = collection.deque([node]) # 注意这里加入[]
+ distance = {node : 0} #需要求距离的时候就加 不需要就不加
+ 
+ while queue:
+     node = queue.popleft()
+     for neighbor in node.get_neighbors():
+         if neighbor in distance:
+             continue
+         distance[neighbor] = distance[node] + 1
+         queue.append(neighbor)
+   
  
  
