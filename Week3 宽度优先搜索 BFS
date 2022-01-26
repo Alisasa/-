@@ -4,8 +4,8 @@ BFS 使用场景：
  拓扑排序
  
  通用模板：
- queue = collection.deque([node]) # 注意这里加入[]
- distance = {node : 0} #需要求距离的时候就加 不需要就不加
+ queue = collection.deque([node]) # 注意这里加入[] 里面是iterable，必须放一串东西，可以放tuple，string，list
+ distance = {node : 0} #建立一个hash map， 去重；需要求距离的时候就加 不需要就不加
  
  while queue:
      node = queue.popleft()
@@ -14,6 +14,168 @@ BFS 使用场景：
              continue
          distance[neighbor] = distance[node] + 1
          queue.append(neighbor)
-   
+         
+# N个点 M条边 时间复杂度 = O(N+M) 最坏O(N2)
+
+#lintcode 137题 克隆图
+#deep copy Vs shallow copy:完整的克隆；拷贝最上面一层
+#main idea:寻找点、复制点、复制边
+"""
+class UndirectedGraphNode:
+     def __init__(self, x):
+         self.label = x
+         self.neighbors = []
+"""
+
+class Solution:
+    """
+    @param node: A undirected graph node
+    @return: A undirected graph node
+    """
+    def cloneGraph(self, node):
+        # write your code here
+        if not node:
+            return None
+        #step1:找到所有点
+        nodes = self.find_nodes_by_bfs(node)
+        #step2:复制所有的点（建立映射关系）
+        mapping = self.copy_nodes(nodes)
+        #step3:复制所有的边
+        self.copy_edges(nodes,mapping)
+
+        return mapping[node]
+
+    #step1:找到所有点
+    def find_nodes_by_bfs(self, node):
+        queue = collections.deque([node])
+        visited = set([node])
+        while queue:
+            cur_node = queue.popleft()
+            for neighbor in cur_node.neighbors:
+                if neighbor in visited:
+                    continue
+                queue.append(neighbor)
+                visited.add(neighbor)
+        return list(visited)
+        
+    #step2:复制所有的点（建立映射关系）
+    def copy_nodes(self, nodes):
+        mapping = {}
+        for node in nodes:
+            mapping[node] = UndirectedGraphNode(node.label)
+        return mapping
+    #step3:复制所有的边
+    def copy_edges(self, nodes, mapping):
+        for node in nodes:
+            new_node = mapping[node]
+            #旧点有哪些旧邻居，新点就有哪些新邻居
+            for neighbor in node.neighbors:
+                new_neighbor = mapping[neighbor]
+                new_node.neighbors.append(new_neighbor)
+                
+                
+#lintcode 120题 单词接龙 给两个单词（start，end）一个字典，找出从start到end的最短转换序列，输出最短序列长度
+#注意最短序列 -- BFS
+
+def ladderLength(self, start, end, dict):
+        # write your code here
+        #注意要把end加进去 end有可能在有可能不在
+        dict.add(end)
+        queue = collections.deque([start])
+        visited = set([start])
+        distance = 0 
+
+        while queue:
+            distance += 1
+            size = len(queue)
+            for i in range(size):
+                word = queue.popleft()
+                if word == end:
+                    return distance
+                for next_word in self.find_next_words(word, dict):
+                    if next_word in visited:
+                        continue
+                    queue.append(next_word)
+                    visited.add(next_word)   
+        return 0
+'''如果dict里词过多 则会超时 时间复杂度 = N*L = 1000（dict里的词数量）*10（单词长度）
+    def find_next_words(self, word, dict):
+        next_words = []
+        for next_word in dict:
+            has_one_diff = False
+            for i in range(len(word)):
+                if (next_word[i] != word[i]):
+                    if has_one_diff:
+                        has_one_diff = False
+                        break
+                    has_one_diff = True
+            if has_one_diff:
+                next_words.append(next_word)
+        return next_words '''
+    #时间复杂度 26*L*L 比上面一种方法时间复杂度要小
+    def get_next_words(self, word, dict):
+        next_words = []
+        for i in range(len(word)):
+            left, right = word[:i], word[i + 1:]
+            for char in 'abcdefghijklmnopqrstuvwxyz':
+                if word[i] == char:
+                    continue
+                new_word = left + char + right
+                #注意有条件，如果这个单词在dict里，则加入next_words list，如果不在list就压根不用考虑此单词
+                if new_word in dict:
+                    next_words.append(new_word)
+        return next_words    
+              
+#lintcode 433题 岛屿数量 如果0就是海洋 1是岛屿 求岛屿数量
+class Solution:
+    """
+    @param grid: a boolean 2D matrix
+    @return: an integer
+    """
+    def numIslands(self, grid):
+        if not grid or not grid[0]:
+            return 0
+        islands = 0
+        #set记录某点是否被bfs过
+        visited = set()
+        #len(grid)代表有几行row； len(grid[0])代表有几列colum；两个for就能遍历grid里所有的点
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                #如果grid=True（是1）并且这个点没有被访问过，遍历他周围的点找到所有相连的1
+                if grid[i][j] and (i, j) not in visited:
+                    self.bfs(grid, i, j, visited)
+                    islands += 1
+        return islands
+
+    def bfs(self, grid, x, y, visited):
+        DIRECTIONS = [(1, 0), (0, -1), (-1, 0), (0, 1)]
+        queue = collections.deque([(x,y)])
+        visited.add((x,y))
+        while queue:
+            x, y = queue.popleft()
+            for delta_x, delta_y in DIRECTIONS:
+                next_x = x + delta_x
+                next_y = y + delta_y
+                if not self.isvalid(grid, next_x, next_y, visited):
+                    continue
+                queue.append((next_x, next_y))
+                visited.add((next_x, next_y))
+                
+    #判断一个点是否可以被bfs 
+    def isvalid(self, grid, x, y, visited):
+        n, m = len(grid), len(grid[0])
+        #如果出界，返回false
+        if not(0 <= x < n and 0 <= y < m):
+            return False
+        #如果访问过，返回false
+        if (x, y) in visited:
+            return False
+        #如果是1，则为true，如果是0，则为false
+        #逻辑表达式里非 0 元素为真
+        return grid[x][y]
+
+#lintcode 611题 骑士的最短路线
+                
+               
  
  
