@@ -175,7 +175,41 @@ class Solution:
         return grid[x][y]
 
 #lintcode 611题 骑士的最短路线
-                
+DIRECTION = [(-1, -2), (-1, 2), (1, -2), (1, 2), (-2, -1), (-2, 1), (2, -1), (2, 1)]
+
+class Solution:
+    """
+    @param grid: a chessboard included 0 (false) and 1 (true)
+    @param source: a point
+    @param destination: a point
+    @return: the shortest path 
+    """
+    def shortestPath(self, grid, source, destination):
+        # 注意这里如何加入deque ([()])加入一个可迭代的需要外面加[],list,tuple,不能加单独的字符串
+        queue = collections.deque([(source.x, source.y)])
+        distance_dict = {(source.x, source.y) : 0}
+        while queue:
+            x, y = queue.popleft()
+            if (x, y) == (destination.x, destination.y):
+                return distance_dict[(x, y)]
+            #遍历8个不同方向
+            for delta_x, delta_y in DIRECTION:
+                next_x = x + delta_x
+                next_y = y + delta_y
+                #如果这些方向不合法/已经加入到dict里，忽略、继续
+                if not self.isvalid(grid, next_x, next_y) or (next_x, next_y) in distance_dict:
+                    continue
+                #加入queue，加入dict里
+                queue.append((next_x, next_y))
+                distance_dict[(next_x, next_y)] = distance_dict[(x, y)] + 1
+        return -1
+    def isvalid(self, grid, x, y):
+        m, n = len(grid), len(grid[0])
+        #超过范围了，false
+        if not(0 <= x < m and 0 <= y < n):
+            return False
+        #有1障碍物时为false
+        return not grid[x][y]                
                
  
  
