@@ -17,6 +17,32 @@ BFS 使用场景：
          
 # N个点 M条边 时间复杂度 = O(N+M) 最坏O(N2)
 
+#lintcode 618 给定一张 无向图，一个 节点 以及一个 目标值，返回距离这个节点最近 且 值为目标值的节点，如果不能找到则返回 NULL。
+在给出的参数中, 我们用 map 来存节点的值
+#套用模板
+class Solution:
+    """
+    @param: graph: a list of Undirected graph node
+    @param: values: a hash mapping, <UndirectedGraphNode, (int)value>
+    @param: node: an Undirected graph node
+    @param: target: An integer
+    @return: a node
+    """
+    def searchNode(self, graph, values, node, target):
+        # write your code here
+        queue = collections.deque([node])
+        visited = set([node])
+        while queue:
+            n = queue.popleft()
+            if values[n] == target:
+                return n
+            for neighbor in n.neighbors:
+                if neighbor in visited:
+                    continue
+                queue.append(neighbor)
+                visited.add(neighbor)
+        return None
+
 #lintcode 137题 克隆图
 #deep copy Vs shallow copy:完整的克隆；拷贝最上面一层
 #main idea:寻找点、复制点、复制边
@@ -174,6 +200,57 @@ class Solution:
         #逻辑表达式里非 0 元素为真
         return grid[x][y]
 
+#lintcode 598僵尸矩阵 给一个二维网格grid，2代表墙，1代表僵尸， 0代表人类，僵尸每天可以感染上下左右的人，但不能穿墙，将所有人类感染为僵尸需要多久，如果不能感染所有人则返回 -1。
+#和岛屿那一题思路一致
+DIRECTIONS = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+from collections import deque
+
+class Solution:
+    """
+    @param grid: a 2D integer grid
+    @return: an integer
+    """
+    def zombie(self, grid):
+        # 特殊情况处理
+        if not grid or not grid[0]:
+            return -1
+        day = 0
+        queue = collections.deque()
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                #如果grid = True（是1）且这个点没有遍历过，遍历周围的点并把周围的点变成0
+                if grid[i][j] == 1:
+                    queue.append((i, j))
+        day = self.bfs(grid, queue, 0)
+        #感染完所有的人后，看grid里还有没有0，如果有，返回-1，如果没有，返回day
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                if grid[i][j] == 0:
+                    return -1
+        return day   
+
+    def bfs(self, grid, queue, day):
+        while queue:
+            day += 1
+            size = len(queue)
+            for k in range(size):
+                x, y = queue.popleft()
+                for dx, dy in DIRECTIONS:
+                    next_x, next_y = x + dx, y + dy
+                    if not self.is_valid(grid, next_x, next_y):
+                        continue
+                    grid[next_x][next_y] = 1
+                    queue.append((next_x, next_y))
+        return day - 1
+
+    def is_valid(self,grid, x, y):
+        n, m = len(grid), len(grid[0])
+        if not (0 <= x < n and 0 <= y <m):
+            return False
+        if grid[x][y] != 0:
+            return False
+        return True
+
 #lintcode 611题 骑士的最短路线
 DIRECTION = [(-1, -2), (-1, 2), (1, -2), (1, 2), (-2, -1), (-2, 1), (2, -1), (2, 1)]
 
@@ -211,5 +288,152 @@ class Solution:
         #有1障碍物时为false
         return not grid[x][y]                
                
- 
- 
+ #lintcode 630题 骑士最短路径 与上题相似，初始点（0，0）要到达（n-1，m-1）并且只能从左到右的走，即偏移量只有4个，0为空，1为有障碍物
+ #设置偏移量
+DIRECTIONS = [(1, 2), (-1, 2), (2, 1), (-2, 1)]
+
+class Solution:
+    """
+    @param grid: a chessboard included 0 and 1
+    @return: the shortest path
+    """
+    def shortestPath2(self, grid):
+        # write your code here
+        n = len(grid)
+        m = len(grid[0])
+        print(n, m)
+        #特殊情况处理
+        if not grid or not grid[0]:
+            return -1
+        #把起点加入queue
+        queue = collections.deque([(0,0)])
+        #做一个dict把起点和对应的distance加入
+        visited = {(0,0) : 0} 
+        while queue:
+            x, y = queue.popleft()
+            if (x, y) == (n-1, m-1):
+                return visited[(x, y)]
+            #遍历起点能到达的所有点
+            for delta_x, delta_y in DIRECTIONS:
+                next_x = x + delta_x
+                next_y = y + delta_y
+                print((next_x, next_y))
+                #如果这个点不valid或者已经在visited里面（遍历过）则继续
+                if not self.is_valid(grid, next_x, next_y) or (next_x, next_y) in visited:
+                    continue
+                #否则，加入queue和vistied，继续遍历这些点，看是否能到达终点
+                queue.append((next_x, next_y))
+                visited[(next_x, next_y)] = visited[(x, y)] + 1
+        return -1
+
+    def is_valid(self, grid, x, y):
+        n = len(grid)
+        m = len(grid[0])
+        if not(0 <= x < n and 0 <= y <m):
+            return False
+        return grid[x][y] == 0
+
+ #lintcode 178 给出 n 个节点，标号分别从 0 到 n - 1 并且给出一个 无向 边的列表 (给出每条边的两个顶点), 写一个函数去判断这张｀无向｀图是否是一棵树
+ class Solution:
+    """
+    @param n: An integer
+    @param edges: a list of undirected edges
+    @return: true if it's a valid tree, or false
+    """
+    def validTree(self, n, edges):
+        #树的定义 # of node = # of edges + 1
+        if len(edges) != n - 1:
+            return False
+        #邻接表
+        neighbors = {i:[] for i in range(n)}
+        for u, v in edges:
+            neighbors[u].append(v)
+            neighbors[v].append(u)
+        print(neighbors)
+        visited = {}
+        queue = collections.deque([0])
+        visited[0] = True
+        print(visited)
+        
+        while queue:
+            cur = queue.popleft()
+            visited[cur] = True
+            print(neighbors[cur])
+            for node in neighbors[cur]:
+                if node not in visited:
+                    visited[node] = True
+                    queue.append(node)
+        print(visited)
+        return len(visited) == n
+
+#127 拓扑排序 经典方法 可以当作模板
+"""
+class DirectedGraphNode:
+     def __init__(self, x):
+         self.label = x
+         self.neighbors = []
+"""
+
+class Solution:
+    """
+    @param graph: A list of Directed graph node
+    @return: Any topological order for the given graph.
+    """
+    def topSort(self, graph):
+        #define indegree with dict
+        indegree = dict((i,0) for i in graph)
+        print(indegree)
+        #求出每个node有几个箭头指向它
+        for i in graph:
+            for j in i.neighbors:
+                indegree[j] += 1          
+
+        
+        queue = collections.deque()
+        for i in graph:
+            #0个箭头指向的node加入queue
+            if indegree[i] == 0:
+                queue.append(i)
+        #result and bfs       
+        result = []        
+        while queue:
+            node = queue.popleft()
+            result.append(node)
+            for j in node.neighbors:
+                indegree[j]-=1
+                if indegree[j] == 0:
+                    queue.append(j)            
+        return result
+ #616 
+ class Solution:
+    """
+    @param: numCourses: a total of n courses
+    @param: prerequisites: a list of prerequisite pairs
+    @return: the course order
+    """
+    def findOrder(self, numCourses, prerequisites):
+        #建立邻接表
+        edges = {i:[] for i in range(numCourses)}
+        degree = [0] * numCourses
+        for i, j in prerequisites:
+            edges[j].append(i)
+            degree[i] += 1
+        print(edges)
+        print(degree)
+        queue = collections.deque()
+        for i in range(numCourses):
+            if degree[i] == 0:
+                queue.append(i)
+        num_choose = 0
+        result = []
+        while queue:
+            cur_cos = queue.popleft()
+            result.append(cur_cos)
+            num_choose += 1
+            for next_cos in edges[cur_cos]:
+                degree[next_cos] -= 1
+                if degree[next_cos] == 0:
+                    queue.append(next_cos)
+        return result if num_choose == numCourses else []
+
+
