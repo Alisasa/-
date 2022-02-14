@@ -4,6 +4,7 @@
 2.排列类
 
 '''
+'''1.组合类'''
 #lintcode 17. subset 没有重复数字
 #方法一：
  def subsets(self, nums):
@@ -25,3 +26,32 @@
  #方法二：
            
 #lintcode 18. subset 有重复数字
+
+
+'''2.排列类'''
+#lintcode 15#
+def permute(self, nums: List[int]) -> List[List[int]]:
+        # write your code here
+        if not nums:
+            return [[]]
+        permutations = []
+        self.dfs(nums, [], set(), permutations)
+        return permutations
+    # 1. 递归的定义：找到所有permutation开头的permutations
+    def dfs(self,nums, permutation, visited, permutations):
+        # 2. 递归的出口
+        if len(nums) == len(permutation):
+          #必须要深度copy
+            permutations.append(list(permutation))
+            return
+        #3.递归的拆解
+        for num in nums:
+            if num in visited:
+                continue
+            permutation.append(num)
+            visited.add(num)
+            self.dfs(nums, permutation, visited, permutations)
+            visited.remove(num)
+            permutation.pop()
+
+            
