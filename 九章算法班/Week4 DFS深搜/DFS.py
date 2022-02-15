@@ -1,4 +1,5 @@
 '''
+DFS可以解决的问题类型
 1.组合类
   题号：17，18
 2.排列类
@@ -28,7 +29,10 @@
 #lintcode 18. subset 有重复数字
 
 
-'''2.排列类'''
+'''2.排列类
+递归： 本质是n重循环
+时间复杂度 O（N！*N）
+'''
 #lintcode 15#
 def permute(self, nums: List[int]) -> List[List[int]]:
         # write your code here
