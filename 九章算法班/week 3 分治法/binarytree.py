@@ -69,4 +69,20 @@ def closestValue(self, root, target):
         # root.val > target 已经是一个upper bound，记录下来并继续在左子树上寻找是否有更接近target的upper bound
         upper = self.upper_bound(root.left, target)
         return root if upper is None else upper
-    
+#lintcode 11
+def search_range(self, root: TreeNode, k1: int, k2: int) -> List[int]:
+        # write your code here
+        res = []
+        self.travel(root, k1, k2, res)
+        return res
+       
+    def travel(self, root, k1, k2, res):
+        if root is None:
+            return 
+        #我只知道 root.val > k1，但我并不知道 root 的左子树还有没有结点是 >= k1 的,所以还需要去左子树看一眼
+        if root.val > k1:
+            self.travel(root.left, k1, k2, res)
+        if k1 <= root.val <= k2:
+            res.append(root.val)
+        if root.val < k2:
+            self.travel(root.right, k1, k2, res)
