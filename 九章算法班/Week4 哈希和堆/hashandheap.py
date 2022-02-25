@@ -27,6 +27,19 @@ dict0 = {} dict = dict() dict1 ={'name' :'amy', 'age':'21'}
 查找key O(1) 1 in dict 查找value O(n) 21 in dict.value()
 大小O（1） len(dict)
 遍历 for key in dict: for value in dict.values(): for key, value in dict.items()
+
+Heap堆
+最小堆（最小元素在堆顶）和最大堆（最大元素在堆顶），堆是一个完全二叉树
+python:heapq
+堆的底层实现结构一般是数组
+
+基本操作：
+构建堆 (heapify) O(N)
+遍历堆 O(NlogN)
+add O(logN)
+pop O(logN)只能移除栈顶元素
+remove 理论上可以实现O(logN)需要写程序去实现 heapq O(logN)
+min or max O(1)
 '''
 
 #lintcode 685
